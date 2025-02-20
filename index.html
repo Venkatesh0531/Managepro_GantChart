@@ -1,0 +1,300 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ghant</title>
+    <style>
+        * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;    
+  }
+  .container {
+    max-width: 100%; /* Change max-width to 100% */
+    min-width: 650px;
+    margin: 0 auto;
+    height: 100vh; 
+}
+  .chart {
+      display: grid;
+      border: 2px solid #000;
+      position: relative;
+      overflow: hidden;  
+  }
+  .chart-row {
+    display: grid;      
+	  grid-template-columns: 50px 1fr;
+	  background-color: #DCDCDC;
+  }
+  .chart-row:nth-child(odd) {
+    background-color: #C0C0C0;
+  }
+  .chart-period {
+    color:  #fff;
+    background-color:  #708090 !important;
+    border-bottom: 2px solid #000; 
+    grid-template-columns: 50px repeat(12, 1fr);
+  }
+  .chart-lines {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    background-color: transparent;
+    grid-template-columns: 50px repeat(12, 1fr);
+  }
+  .chart-period > span {    
+    text-align: center;
+		font-size: 13px;
+		align-self: center;
+		font-weight: bold;
+    padding: 15px 0;    
+  }
+  .chart-lines > span {
+    display: block;
+    border-right: 1px solid rgba(0, 0, 0, 0.3);
+  }
+ 
+  .chart-row-item {
+    background-color:#808080;
+    border: 1px solid  #000;
+    border-top: 0;
+    border-left: 0;      
+    padding: 20px 0;
+    font-size: 15px;
+    font-weight: bold;
+    text-align: center;
+  } 
+
+  .chart-row-bars {
+    list-style: none;
+		display: grid;
+		padding: 15px 0;
+		margin: 0;
+		grid-template-columns: repeat(12, 1fr);
+		grid-gap: 10px 0;
+		border-bottom: 1px solid  #000;
+  }
+  li {
+    font-weight: 450;
+		text-align: left;
+		font-size: 15px;
+		min-height: 15px;
+		background-color: #75cde9;
+		padding: 5px 15px;
+		color: #fff;
+		overflow: hidden;
+		position: relative;
+		cursor: pointer;
+		border-radius: 15px;
+  }
+  ul .chart-li-one {
+    grid-column: 1/2; 
+    background-color:#588BAE;
+  }
+  ul .chart-li-two-a {
+    grid-column: 2/2; 
+    background-color: #0080FF;
+  }
+  ul .chart-li-two-b {
+    grid-column: 2/4; 
+    background-color:#4682B4;
+  } 
+  ul .chart-li-three {
+    grid-column: 3/5; 
+    background-color:#57A0D3;
+  }
+  ul .chart-li-four {
+    grid-column: 3/9; 
+    background-color:#0E4D92;
+  }
+  ul .chart-li-five {
+    grid-column: 7/10; 
+    background-color:#4F97A3;
+  }
+  ul .chart-li-six {
+    grid-column: 10/12; 
+    background-color:#73C2FB;
+  }
+  ul .chart-li-seven {
+    grid-column: 12/12; 
+    background-color:#0080FF;
+  }
+  .controls button {
+    margin-left: 10px;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.controls button:hover {
+    opacity: 0.8;
+}
+</style>
+</head>
+<body>
+    <div class="container">
+        <div class="chart">
+            <div class="chart-row chart-period">
+                <div class="chart-row-item"></div>
+                <span>January</span><span>February</span><span>March</span>
+                <span>April</span><span>May</span><span>June</span>
+                <span>July</span><span>August</span><span>September</span>
+                <span>October</span><span>November</span><span>December</span>
+            </div>
+            <div class="chart-row chart-lines">
+                <span></span><span></span><span></span>
+                <span></span><span></span><span></span>
+                <span></span><span></span><span></span>
+                <span></span><span></span><span></span>
+            </div>
+            <div id="chartRows"></div>
+        </div>
+        <div class="controls">
+            <button onclick="addTask()" style="background-color: #4CAF50; color: white;">Add Task</button>
+            <button onclick="rescheduleTask()" style="background-color: #2196F3; color: white;">Reschedule Task</button>
+            <button onclick="slideTask()" style="background-color: #f44336; color: white;">Slide Task</button>
+        </div>
+    </div>
+
+    <script>
+        let tasks = [
+            { id: 1, name: "Planning", startMonth: 0, duration: 1 },
+            { id: 2, name: "Meeting", startMonth: 1, duration: 1 },
+            { id: 3, name: "Analysis", startMonth: 1, duration: 2 },
+            { id: 4, name: "Design", startMonth: 2, duration: 2 },
+            { id: 5, name: "Development", startMonth: 2, duration: 6 },
+            { id: 6, name: "Testing", startMonth: 6, duration: 3 },
+            { id: 7, name: "Maintenance", startMonth: 9, duration: 2 },
+            { id: 8, name: "Meeting", startMonth: 11, duration: 1 }
+        ];
+
+        function renderTasks() {
+            const chartRows = document.getElementById("chartRows");
+            chartRows.innerHTML = "";
+
+            tasks.forEach((task, index) => {
+                const row = document.createElement("div");
+                row.className = "chart-row";
+
+                const rowItem = document.createElement("div");
+                rowItem.className = "chart-row-item";
+                rowItem.textContent = index + 1;
+                row.appendChild(rowItem);
+
+                const bars = document.createElement("ul");
+                bars.className = "chart-row-bars";
+
+                const bar = document.createElement("li");
+                bar.textContent = task.name;
+                bar.style.gridColumn = `${task.startMonth + 1}/${task.startMonth + task.duration + 1}`;
+                bar.dataset.taskId = task.id;
+                bars.appendChild(bar);
+
+                row.appendChild(bars);
+                chartRows.appendChild(row);
+            });
+        }
+
+        function addTask() {
+    const taskName = prompt("Enter the task name:");
+    const startMonth = parseInt(prompt("Enter the start month (0-11):"));
+    const duration = parseInt(prompt("Enter the duration in months:"));
+
+    if (!taskName || isNaN(startMonth) || isNaN(duration)) {
+        alert("Invalid input. Please enter a valid task name, start month, and duration.");
+        return;
+    }
+
+    if (startMonth < 0 || startMonth > 11) {
+        alert("Start month should be between 0 and 11.");
+        return;
+    }
+
+    if (duration <= 0) {
+        alert("Duration should be a positive number.");
+        return;
+    }
+
+    if (startMonth + duration > 12) {
+        alert("The task duration would exceed the chart boundaries.");
+        return;
+    }
+
+    const newTaskId = tasks.length > 0 ? Math.max(...tasks.map(t => t.id)) + 1 : 1;
+    const newTask = { id: newTaskId, name: taskName, startMonth, duration };
+    tasks.push(newTask);
+
+    renderTasks();
+}
+
+        function rescheduleTask() {
+    const taskId = prompt("Enter the task ID you want to reschedule:");
+    const durationChange = parseInt(prompt("Enter the number of months to increase or decrease the duration (positive for increase, negative for decrease):"));
+
+    if (isNaN(taskId) || isNaN(durationChange)) {
+        alert("Invalid input. Please enter a valid task ID and duration change.");
+        return;
+    }
+
+    const task = tasks.find(t => t.id === parseInt(taskId));
+
+    if (!task) {
+        alert("Task not found.");
+        return;
+    }
+
+    const newDuration = task.duration + durationChange;
+
+    if (newDuration <= 0) {
+        alert("The new duration cannot be zero or negative.");
+        return;
+    }
+
+    if (task.startMonth + newDuration > 12) {
+        alert("The new duration would cause the task to exceed the chart boundaries.");
+        return;
+    }
+
+    task.duration = newDuration;
+
+    renderTasks();
+}
+
+        function slideTask() {
+    const taskId = prompt("Enter the task ID you want to slide:");
+    const months = parseInt(prompt("Enter the number of months to slide (positive for forward, negative for backward):"));
+
+    if (isNaN(taskId) || isNaN(months)) {
+        alert("Invalid input. Please enter a valid task ID and number of months.");
+        return;
+    }
+
+    const task = tasks.find(t => t.id === parseInt(taskId));
+
+    if (!task) {
+        alert("Task not found.");
+        return;
+    }
+
+    const newStartMonth = (task.startMonth + months + 12) % 12;
+    const newDuration = task.duration;
+
+    if (newStartMonth + newDuration > 12) {
+        alert("The task cannot be slid that far because it would exceed the chart boundaries.");
+        return;
+    }
+
+    task.startMonth = newStartMonth;
+    task.duration = newDuration;
+
+    renderTasks();
+}
+
+        renderTasks();
+    </script>
+</body>
+</html>
